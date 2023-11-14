@@ -264,42 +264,51 @@ class UserLogin(APIView):
             )
             
             
+            
 class WishListAPIView(ListCreateAPIView):
 
     queryset = WishList.objects.all()
     serializer_class = WishListSerializer
             
+            
 class GetWishListAPIView(RetrieveAPIView):
 
     serializer_class = WishListSerializer
     queryset = WishList.objects.all()
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
     
     def get_queryset(self):
         comic_id = self.kwargs.get('pk')
         queryset = self.queryset.filter(id=comic_id)
         return queryset
     
+    
 class PostWishListAPIView(CreateAPIView):
     
     queryset = WishList.objects.all()
     serializer_class = WishListSerializer
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, IsAdminUser]
+    authentication_classes = [TokenAuthentication]
+    
+    
     
 class UpdateWishListAPIView(UpdateAPIView):
     queryset = WishList.objects.all()
     serializer_class = WishListSerializer
     lookup_field = 'pk'
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated | IsAdminUser]
-    
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
+    authentication_classes = [TokenAuthentication]
 
     def put(self, request, *args, **kwargs):
         instance = self.get_object()
+
+        if instance.user != self.request.user:
+            return Response(
+                data={"detail": "No tienes permiso para actualizar este objeto."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
         serializer = self.get_serializer(
             instance=instance,
             data=request.data,
@@ -308,14 +317,24 @@ class UpdateWishListAPIView(UpdateAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data, status=status.HTTP_200_OK)
+
     
     
 class DeleteWishListAPIView(DestroyAPIView):
     queryset = WishList.objects.all()
     serializer_class = WishListSerializer
     lookup_field = 'pk'
-    authentication_classes = [TokenAuthentication]
     permission_classes = [IsAdminUser]
+    authentication_classes = [TokenAuthentication]
 
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
+    def delete(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if not self.request.user.is_superuser:
+            return Response(
+                data={"detail": "No tienes permiso para eliminar este objeto."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
