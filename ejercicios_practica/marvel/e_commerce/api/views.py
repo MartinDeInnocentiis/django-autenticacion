@@ -21,7 +21,7 @@ from rest_framework.generics import (
     UpdateAPIView
 )
 
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from rest_framework.response import Response
 from rest_framework.validators import ValidationError
@@ -273,6 +273,8 @@ class GetWishListAPIView(RetrieveAPIView):
 
     serializer_class = WishListSerializer
     queryset = WishList.objects.all()
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
         comic_id = self.kwargs.get('pk')
@@ -283,14 +285,16 @@ class PostWishListAPIView(CreateAPIView):
     
     queryset = WishList.objects.all()
     serializer_class = WishListSerializer
-    
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminUser]
     
 class UpdateWishListAPIView(UpdateAPIView):
     queryset = WishList.objects.all()
     serializer_class = WishListSerializer
     lookup_field = 'pk'
-    permission_classes = [IsAuthenticated]
-
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated | IsAdminUser]
+    
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
 
@@ -310,7 +314,8 @@ class DeleteWishListAPIView(DestroyAPIView):
     queryset = WishList.objects.all()
     serializer_class = WishListSerializer
     lookup_field = 'pk'
-    permission_classes = [IsAuthenticated]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAdminUser]
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
