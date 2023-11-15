@@ -297,7 +297,7 @@ class UpdateWishListAPIView(UpdateAPIView):
     queryset = WishList.objects.all()
     serializer_class = WishListSerializer
     lookup_field = 'pk'
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated | IsAdminUser]
     authentication_classes = [TokenAuthentication]
 
     def put(self, request, *args, **kwargs):
@@ -306,7 +306,7 @@ class UpdateWishListAPIView(UpdateAPIView):
         if instance.user != self.request.user:
             return Response(
                 data={"detail": "No tienes permiso para actualizar este objeto."},
-                status=status.HTTP_403_FORBIDDEN
+                status=status.HTTP_401_UNAUTHORIZED
             )
 
         serializer = self.get_serializer(
