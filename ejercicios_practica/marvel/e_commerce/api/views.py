@@ -301,18 +301,22 @@ class UpdateWishListAPIView(UpdateAPIView):
     authentication_classes = [TokenAuthentication]
 
     def put(self, request, *args, **kwargs):
-        _serializer = self.get_serializer(
-            instance=self.get_object(),
+        instance = self.get_object()
+
+        if instance.user != self.request.user:
+            return Response(
+                data={"detail": "No tienes permiso para actualizar este objeto."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = self.get_serializer(
+            instance=instance,
             data=request.data,
-            many=False,
             partial=True
         )
-        if _serializer.is_valid():
-            _serializer.save()
-            return Response(data=_serializer.data, status=status.HTTP_200_OK)
-        return Response(
-            data=_serializer.errors, status=status.HTTP_400_BAD_REQUEST
-        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     
     
