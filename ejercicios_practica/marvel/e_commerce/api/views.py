@@ -297,8 +297,8 @@ class UpdateWishListAPIView(UpdateAPIView):
     queryset = WishList.objects.all()
     serializer_class = WishListSerializer
     lookup_field = 'pk'
-    permission_classes = [IsAuthenticated | IsAdminUser]
-    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated | IsAdminUser,]
+    authentication_classes = []
 
     def put(self, request, *args, **kwargs):
         instance = self.get_object()
